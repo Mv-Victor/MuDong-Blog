@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="generator" content="Hexo 4.2.1"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Category: git学习 - 木东的博客</title><meta property="og:type" content="blog"><meta property="og:title" content="木东的博客"><meta property="og:url" content="https://github.com/Mv-Victor?tab=repositories"><meta property="og:site_name" content="木东的博客"><meta property="og:locale" content="en_US"><meta property="og:image" content="https://github.com/img/og_image.png"><meta property="article:author" content="木东"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://github.com/Mv-Victor?tab=repositories"},"headline":"木东的博客","image":["https://github.com/img/og_image.png"],"author":{"@type":"Person","name":"木东"},"description":""}</script><link rel="icon" href="/img/favicon.svg"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="木东的博客" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/Mv-Victor"><i class="fab fa-github"></i></a><a class="navbar-item search" title="Search" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><div class="card-content"><nav class="breadcrumb" aria-label="breadcrumbs"><ul><li><a href="/categories">Categories</a></li><li class="is-active"><a href="#" aria-current="page">git学习</a></li></ul></nav></div></div><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-09-02T07:00:34.432Z" title="2020-09-02T07:00:34.432Z">2020-09-02</time><span class="level-item"><a class="link-muted" href="/categories/git%E5%AD%A6%E4%B9%A0/">git学习</a></span><span class="level-item">3 minutes read (About 505 words)</span></div></div><h1 class="title is-3 is-size-4-mobile"><a class="link-muted" href="/2020/09/02/git-sshkey/">git-ssh_keys创建、管理问题</a></h1><div class="content"><p>最近重新回顾了下hexo+git_pages+自定义域名+CloudFlare的CDN加速配置，发现在git的使用上出现了不少问题，git笔记看来还是得好好回顾啊。</p>
+<hr>
+<p>首先是git push时遇到了Permission Denied的报错。</p>
+<center class="half">
+    <img src="https://pic.angelbeats.xyz/hzd/git_sshkeys/1.png" width="600"/>
+</center>
+
+<p>之前为了搞github图床好像改过一次ssh key，所以.ssh文件夹下本来就有公钥密钥，再去github加ssh keys就会报错key is already in use。</p>
+<p>没仔细看报错，提示的是在.ssh文件夹下没有找到id-rsa的密钥文件。<br>大意的我直接去.ssh文件夹下删了原来的公钥密钥重新做了一个出来。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -C <span class="string">"your email"</span></span><br></pre></td></tr></table></figure>
+
+<p>三次回车默认+去github个人setting里循规蹈矩整好ssh后，报了同样的错误。</p>
+<center class="half">
+    <img src="https://pic.angelbeats.xyz/hzd/git_sshkeys/2.png" width="600"/>
+</center>
+
+<p>这次仔细看了，查看下debug信息：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -v git@github.com</span><br></pre></td></tr></table></figure>
+
+<p>最后几行显示：在.ssh文件夹下找不到id-rsa，但是.ssh文件夹里公钥密钥都有，名称也都是默认的,仔细一看，下划线和递进线的区别……</p>
+<center class="half">
+    <img src="https://pic.angelbeats.xyz/hzd/git_sshkeys/3.png" width="600"/>
+</center>
+
+<p>于是解决方法有二：</p>
+<ol>
+<li><p>__改名__，id_rsa改成id-rsa即可</p>
+</li>
+<li><p>__在ssh路径中加入id_rsa文件__, 本质是改了.ssh文件夹下的config文件中的配置信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh-agent bash </span><br><span class="line">ssh-add ~/.ssh/id_rsa</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<center class="half">
+    <img src="https://pic.angelbeats.xyz/hzd/git_sshkeys/4.jpg" width="600"/>
+</center>
+
+<h2 id="Done"><a href="#Done" class="headerlink" title="Done"></a><center><strong>Done</strong></center></h2><p>延伸出来讲，如果同一台电脑注册多个github的话，要分开来传输文件就需要多个ssh公钥和密钥，在正确添加所有密钥后，他们的管理问题只需要在.ssh下新建一个config（全名）文件，按照以下格式一一整理即可。</p>
+<center class="half">
+    <img src="https://pic.angelbeats.xyz/hzd/git_sshkeys/5.png" width="500" height="200"/>
+</center>
+
+
+<p>顺带着占个坑(可见我git使用的是多么新手)：git reset –mixed <commit_id>命令是用来在错误commit情况下返回上一次修改状态的，那么如果只提交了一次又该如何删除呢?</p>
+</div></article></div></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/avatar.png" alt="木东"></figure><p class="title is-size-4 is-block line-height-inherit">木东</p><p class="is-size-6 is-block">探索、实践</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>HangZhou-WestLake</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">Post</p><a href="/archives"><p class="title">1</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Category</p><a href="/categories"><p class="title">1</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Tags</p><a href="/tags"><p class="title">0</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/Mv-Victor" target="_blank" rel="noopener">Follow</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/Mv-Victor"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Facebook" href="https://user.qzone.qq.com/1181348296/"><i class="fab fa-qq"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Twitter" href="https://twitter.com"><i class="fab fa-twitter"></i></a></div></div></div><!--!--><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">Links</h3><ul class="menu-list"><li><a class="level is-mobile is-mobile" href="https://space.bilibili.com/21189901?from=search&amp;seid=4701254568524113361" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Bilibili</span></span><span class="level-right"><span class="level-item tag">space.bilibili.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">Categories</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/git%E5%AD%A6%E4%B9%A0/"><span class="level-start"><span class="level-item">git学习</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">Recent</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2020-09-02T07:00:34.432Z">2020-09-02</time></p><p class="title is-6"><a class="link-muted" href="/2020/09/02/git-sshkey/">git-ssh_keys创建、管理问题</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/git%E5%AD%A6%E4%B9%A0/">git学习</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">Archives</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2020/09/"><span class="level-start"><span class="level-item">September 2020</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><!--!--><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">Subscribe to Updates</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button is-primary" type="submit" value="Subscribe"></div></div></form></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="木东的博客" height="28"></a><p class="size-small"><span>&copy; 2020 木东</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/Mv-Victor"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("en");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'https://github.com/Mv-Victor?tab=repositories',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="Back to Top" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="Type something..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"Type something...","untitled":"(Untitled)","posts":"Posts","pages":"Pages","categories":"Categories","tags":"Tags"});
+        });</script></body></html>
